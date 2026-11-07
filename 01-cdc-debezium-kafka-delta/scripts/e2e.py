@@ -1,5 +1,6 @@
 """End-to-end proof against real SQL Server, Debezium and Kafka. Needs Docker. Runs in CI."""
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -75,3 +76,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Every assertion has passed by here. Normal interpreter teardown can abort inside native
+    # library threads (seen in CI: "terminate called without an active exception"), which would
+    # turn a passing run into exit code 134, so exit directly instead. Failures still raise above.
+    sys.stdout.flush()
+    os._exit(0)
