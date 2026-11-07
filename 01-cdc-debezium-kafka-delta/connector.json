@@ -1,0 +1,21 @@
+{
+  "name": "retail-orders",
+  "config": {
+    "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
+    "database.hostname": "sqlserver",
+    "database.port": "1433",
+    "database.user": "sa",
+    "database.password": "LocalOnly!Passw0rd",
+    "database.names": "retail",
+    "database.encrypt": "false",
+    "topic.prefix": "shop",
+    "table.include.list": "dbo.orders",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka:9092",
+    "schema.history.internal.kafka.topic": "schema-history.retail",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "tombstones.on.delete": "true"
+  }
+}

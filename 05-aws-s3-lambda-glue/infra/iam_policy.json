@@ -1,0 +1,33 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadLanding",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject"],
+      "Resource": "arn:aws:s3:::${bucket}/landing/orders/*"
+    },
+    {
+      "Sid": "WriteCuratedAndQuarantine",
+      "Effect": "Allow",
+      "Action": ["s3:PutObject"],
+      "Resource": ["arn:aws:s3:::${bucket}/curated/orders/*", "arn:aws:s3:::${bucket}/quarantine/orders/*"]
+    },
+    {
+      "Sid": "RegisterPartitions",
+      "Effect": "Allow",
+      "Action": ["glue:GetTable", "glue:GetPartition", "glue:CreatePartition"],
+      "Resource": [
+        "arn:aws:glue:${region}:${account_id}:catalog",
+        "arn:aws:glue:${region}:${account_id}:database/${database}",
+        "arn:aws:glue:${region}:${account_id}:table/${database}/${table}"
+      ]
+    },
+    {
+      "Sid": "Logs",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:${region}:${account_id}:*"
+    }
+  ]
+}

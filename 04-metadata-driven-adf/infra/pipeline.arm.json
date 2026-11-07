@@ -1,0 +1,90 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "factoryName": { "type": "string" }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DataFactory/factories/pipelines",
+      "apiVersion": "2018-06-01",
+      "name": "[concat(parameters('factoryName'), '/pl_metadata_driven_ingest')]",
+      "properties": {
+        "activities": [
+          {
+            "name": "lookup_sources",
+            "type": "Lookup",
+            "typeProperties": {
+              "source": {
+                "type": "AzureSqlSource",
+                "sqlReaderQuery": "SELECT source_id, system, source_table, target_path, watermark_column, last_watermark FROM etl.source_control WHERE enabled = 1"
+              },
+              "dataset": { "referenceName": "ds_control_table", "type": "DatasetReference" },
+              "firstRowOnly": false
+            }
+          },
+          {
+            "name": "for_each_source",
+            "type": "ForEach",
+            "dependsOn": [{ "activity": "lookup_sources", "dependencyConditions": ["Succeeded"] }],
+            "typeProperties": {
+              "items": { "value": "@activity('lookup_sources').output.value", "type": "Expression" },
+              "isSequential": false,
+              "batchCount": 4,
+              "activities": [
+                {
+                  "name": "get_high_watermark",
+                  "type": "Lookup",
+                  "typeProperties": {
+                    "source": {
+                      "type": "AzureSqlSource",
+                      "sqlReaderQuery": { "value": "SELECT MAX(@{item().watermark_column}) AS high FROM @{item().system}.@{item().source_table}", "type": "Expression" }
+                    },
+                    "dataset": { "referenceName": "ds_source", "type": "DatasetReference" }
+                  }
+                },
+                {
+                  "name": "copy_increment",
+                  "type": "Copy",
+                  "dependsOn": [{ "activity": "get_high_watermark", "dependencyConditions": ["Succeeded"] }],
+                  "policy": { "retry": 2, "retryIntervalInSeconds": 120 },
+                  "typeProperties": {
+                    "source": {
+                      "type": "AzureSqlSource",
+                      "sqlReaderQuery": {
+                        "value": "SELECT * FROM @{item().system}.@{item().source_table} WHERE @{item().watermark_column} > '@{item().last_watermark}' AND @{item().watermark_column} <= '@{activity('get_high_watermark').output.firstRow.high}'",
+                        "type": "Expression"
+                      }
+                    },
+                    "sink": { "type": "ParquetSink" }
+                  },
+                  "inputs": [{ "referenceName": "ds_source", "type": "DatasetReference" }],
+                  "outputs": [
+                    {
+                      "referenceName": "ds_lake_parquet",
+                      "type": "DatasetReference",
+                      "parameters": { "path": { "value": "@item().target_path", "type": "Expression" } }
+                    }
+                  ]
+                },
+                {
+                  "name": "advance_watermark",
+                  "type": "SqlServerStoredProcedure",
+                  "dependsOn": [{ "activity": "copy_increment", "dependencyConditions": ["Succeeded"] }],
+                  "typeProperties": {
+                    "storedProcedureName": "etl.set_watermark",
+                    "storedProcedureParameters": {
+                      "source_id": { "value": { "value": "@item().source_id", "type": "Expression" }, "type": "String" },
+                      "watermark": { "value": { "value": "@activity('get_high_watermark').output.firstRow.high", "type": "Expression" }, "type": "DateTime" }
+                    }
+                  },
+                  "linkedServiceName": { "referenceName": "ls_control_db", "type": "LinkedServiceReference" }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

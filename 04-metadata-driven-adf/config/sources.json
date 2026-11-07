@@ -1,0 +1,29 @@
+[
+  {
+    "source_id": "retailer_a_sales",
+    "system": "retailer_a",
+    "source_table": "sales",
+    "target_path": "bronze/retailer_a/sales",
+    "watermark_column": "updated_at",
+    "key_columns": ["store_id", "item_id", "sale_date"],
+    "enabled": true
+  },
+  {
+    "source_id": "retailer_b_sales",
+    "system": "retailer_b",
+    "source_table": "sales",
+    "target_path": "bronze/retailer_b/sales",
+    "watermark_column": "updated_at",
+    "key_columns": ["store_id", "item_id", "sale_date"],
+    "enabled": true
+  },
+  {
+    "source_id": "retailer_c_inventory",
+    "system": "retailer_c",
+    "source_table": "inventory",
+    "target_path": "bronze/retailer_c/inventory",
+    "watermark_column": "updated_at",
+    "key_columns": ["store_id", "item_id"],
+    "enabled": false
+  }
+]

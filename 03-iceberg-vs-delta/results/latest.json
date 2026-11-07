@@ -1,0 +1,26 @@
+{
+  "rows_per_day": 1000000,
+  "days": 5,
+  "delta": {
+    "write_seconds": 0.524,
+    "total_rows": 5000000,
+    "filtered_rows": 1000000,
+    "filtered_query_ms": 26.68,
+    "time_travel_first_version_rows": 1000000,
+    "data_files": 5,
+    "data_mb": 76.66,
+    "rows_after_evolution": 6000000,
+    "old_rows_null_in_new_column": 5000000
+  },
+  "iceberg": {
+    "write_seconds": 1.1,
+    "total_rows": 5000000,
+    "filtered_rows": 1000000,
+    "filtered_query_ms": 33.39,
+    "time_travel_first_version_rows": 1000000,
+    "data_files": 5,
+    "data_mb": 62.32,
+    "rows_after_evolution": 6000000,
+    "old_rows_null_in_new_column": 5000000
+  }
+}

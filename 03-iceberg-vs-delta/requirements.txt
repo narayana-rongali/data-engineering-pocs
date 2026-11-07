@@ -1,0 +1,5 @@
+deltalake
+pyiceberg[pyarrow,sql-sqlite]
+pyarrow
+numpy
+pytest

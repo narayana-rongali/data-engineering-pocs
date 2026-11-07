@@ -1,0 +1,4 @@
+deltalake
+pyarrow
+kafka-python-ng
+pytest
